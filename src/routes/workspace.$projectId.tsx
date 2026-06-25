@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { ContextHeader } from "@/components/workspace-shell";
 import { StatusBadge } from "@/components/status-badge";
+import { WorkspaceDetailPanel } from "@/components/workspace-detail-panel";
+import { RequirementCompactView } from "@/components/requirement-compact-view";
+import { TestCaseCompactView } from "@/components/test-case-compact-view";
 import { projects, requirements, reqDocuments, reqCategories, type Requirement, type ReqDocument } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
@@ -79,6 +82,7 @@ const seedTests: GeneratedTestCase[] = [
 function WorkspacePage() {
   const { project } = Route.useLoaderData();
   const [selection, setSelection] = useState<Selection>({ kind: "category", category: reqCategories[0] });
+  const [panelOpen, setPanelOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState<Set<string>>(
     new Set([...reqCategories, "tests-root", "tests-Draft", "tests-Approved"])
@@ -95,6 +99,21 @@ function WorkspacePage() {
       next.has(key) ? next.delete(key) : next.add(key);
       return next;
     });
+  };
+
+  const isPanelVisible = (s: Selection) => {
+    return s.kind === "requirement" || s.kind === "testcase";
+  };
+
+  const openPanel = (s: Selection) => {
+    setSelection(s);
+    if (isPanelVisible(s)) {
+      setPanelOpen(true);
+    }
+  };
+
+  const closePanel = () => {
+    setPanelOpen(false);
   };
 
   /* Initial requirement context for generation */
@@ -212,7 +231,7 @@ function WorkspacePage() {
                                 key={r.id}
                                 depth={2}
                                 selected={sel}
-                                onClick={() => setSelection({ kind: "requirement", reqId: r.id })}
+                                onClick={() => openPanel({ kind: "requirement", reqId: r.id })}
                                 label={
                                   <span className="flex items-center gap-2 min-w-0">
                                     <span className="font-mono text-[10px] text-muted-foreground w-14 shrink-0">{r.id}</span>
@@ -268,18 +287,18 @@ function WorkspacePage() {
                       const isSel = selection.kind === "testcase" && selection.tcId === tc.id;
                       return (
                         <TreeRow
-                          key={tc.id}
-                          depth={2}
-                          selected={isSel}
-                          onClick={() => setSelection({ kind: "testcase", tcId: tc.id })}
-                          label={
-                            <span className="flex items-center gap-2 min-w-0">
-                              <FlaskConical className="h-3 w-3 text-muted-foreground shrink-0" />
-                              <span className="font-mono text-[10px] text-muted-foreground w-14 shrink-0">{tc.id}</span>
-                              <span className="flex-1 truncate text-[12px]">{tc.title}</span>
-                            </span>
-                          }
-                        />
+                        key={tc.id}
+                        depth={2}
+                        selected={isSel}
+                        onClick={() => openPanel({ kind: "testcase", tcId: tc.id })}
+                        label={
+                          <span className="flex items-center gap-2 min-w-0">
+                            <FlaskConical className="h-3 w-3 text-muted-foreground shrink-0" />
+                            <span className="font-mono text-[10px] text-muted-foreground w-14 shrink-0">{tc.id}</span>
+                            <span className="flex-1 truncate text-[12px]">{tc.title}</span>
+                          </span>
+                        }
+                      />
                       );
                     })}
                 </div>
@@ -292,9 +311,9 @@ function WorkspacePage() {
         </aside>
 
         {/* ─── Canvas ─── */}
-        <section className="flex-1 min-w-0 canvas-grid">
+        <section className={cn("flex-1 min-w-0 canvas-grid", panelOpen && "overflow-hidden")}>
           <div className="max-w-5xl mx-auto p-6">
-            {selection.kind === "category" && (
+            {!panelOpen && selection.kind === "category" && (
               <CategoryOverview
                 category={selection.category}
                 onSelectDoc={(id) => setSelection({ kind: "document", documentId: id })}
@@ -302,7 +321,7 @@ function WorkspacePage() {
                 onGenerate={() => openGenerate()}
               />
             )}
-            {selection.kind === "document" && (
+            {!panelOpen && selection.kind === "document" && (
               <DocumentOverview
                 doc={reqDocuments.find(d => d.id === selection.documentId)!}
                 onSelectReq={(id) => setSelection({ kind: "requirement", reqId: id })}
@@ -310,7 +329,7 @@ function WorkspacePage() {
                 onViewFile={() => setSelection({ kind: "pdf", documentId: selection.documentId })}
               />
             )}
-            {selection.kind === "pdf" && (
+            {!panelOpen && selection.kind === "pdf" && (
               <PdfViewer
                 doc={reqDocuments.find(d => d.id === selection.documentId)!}
                 onBack={() => setSelection({ kind: "document", documentId: selection.documentId })}
@@ -324,7 +343,7 @@ function WorkspacePage() {
                 allTestCases={testCases}
               />
             )}
-            {selection.kind === "tests-root" && (
+            {!panelOpen && selection.kind === "tests-root" && (
               <TestsOverview
                 testCases={testCases}
                 onSelect={(id) => setSelection({ kind: "testcase", tcId: id })}
@@ -332,7 +351,7 @@ function WorkspacePage() {
                 filter="all"
               />
             )}
-            {selection.kind === "tests-group" && (
+            {!panelOpen && selection.kind === "tests-group" && (
               <TestsOverview
                 testCases={testCases}
                 onSelect={(id) => setSelection({ kind: "testcase", tcId: id })}
@@ -347,7 +366,7 @@ function WorkspacePage() {
                 onUpdate={(patch) => updateTestCase(selection.tcId, patch)}
               />
             )}
-            {selection.kind === "generate" && (
+            {!panelOpen && selection.kind === "generate" && (
               <GenerationWorkspace
                 seedReqIds={genSeedReqIds}
                 existingCount={testCases.length}
@@ -362,6 +381,44 @@ function WorkspacePage() {
           </div>
         </section>
       </div>
+
+      {/* Compact detail panels */}
+      {selection.kind === "requirement" && (
+        <WorkspaceDetailPanel
+          isOpen={panelOpen}
+          onClose={closePanel}
+          onOpenFullView={() => {
+            // Will implement full page navigation in Phase 3
+            closePanel();
+          }}
+          title={`Requirement ${selection.reqId}`}
+          className="p-4"
+        >
+          <RequirementCompactView
+            req={requirements.find(r => r.id === selection.reqId)!}
+            onOpenTest={(id) => openPanel({ kind: "testcase", tcId: id })}
+            allTestCases={testCases}
+          />
+        </WorkspaceDetailPanel>
+      )}
+
+      {selection.kind === "testcase" && (
+        <WorkspaceDetailPanel
+          isOpen={panelOpen}
+          onClose={closePanel}
+          onOpenFullView={() => {
+            // Will implement full page navigation in Phase 3
+            closePanel();
+          }}
+          title={`Test Case ${selection.tcId}`}
+          className="p-4"
+        >
+          <TestCaseCompactView
+            tc={testCases.find(t => t.id === selection.tcId)!}
+            onSelectReq={(id) => openPanel({ kind: "requirement", reqId: id })}
+          />
+        </WorkspaceDetailPanel>
+      )}
 
       {uploadOpen && <UploadModal onClose={() => setUploadOpen(false)} />}
     </div>
