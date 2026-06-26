@@ -1,10 +1,9 @@
 import { createFileRoute, Link, notFound, useParams } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ArrowLeft, Check, X, Pencil, BadgeCheck, Trash2, ListChecks,
-  Plus, Search, FileType2,
+  Plus, Search, FileType2, ChevronDown, Link2, FileText,
 } from "lucide-react";
-import { ContextHeader } from "@/components/workspace-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { requirements, reqDocuments, type Requirement } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
@@ -12,7 +11,6 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/workspace/$projectId/testcases/$testcaseId")({
   head: () => ({ meta: [{ title: "Test Case — RequireQA" }] }),
   loader: ({ params }) => {
-    // In a real app, fetch the test case from data
     return { projectId: params.projectId, testcaseId: params.testcaseId };
   },
   component: TestCaseDetailPage,
@@ -73,8 +71,10 @@ function TestCaseDetailPage() {
 
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<GeneratedTestCase>(testCase);
+  const [template, setTemplate] = useState<"Text Test Case" | "Step Test Case">("Step Test Case");
   const [reqSearch, setReqSearch] = useState("");
   const [showReqPicker, setShowReqPicker] = useState(false);
+  const footerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setDraft(testCase);
@@ -123,106 +123,217 @@ function TestCaseDetailPage() {
     .slice(0, 8);
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <ContextHeader
-        eyebrow={
-          <Link
-            to="/workspace/$projectId"
-            params={{ projectId }}
-            className="hover:text-primary"
-          >
-            Workspace
-          </Link>
-        }
-        title={
-          <span className="flex items-center gap-2">
-            Test Case {draft.id}
-          </span>
-        }
-        actions={
-          <div className="flex items-center gap-2">
-            {editing ? (
-              <>
-                <button
-                  onClick={cancel}
-                  className="h-8 px-3 rounded-md border text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-muted"
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-20 bg-card border-b">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 text-[12px] text-muted-foreground mb-2">
+                <Link
+                  to="/workspace/$projectId"
+                  params={{ projectId }}
+                  className="hover:text-primary"
                 >
-                  <X className="h-3.5 w-3.5" /> Cancel
-                </button>
-                <button
-                  onClick={save}
-                  className="h-8 px-3 rounded-md bg-primary text-primary-foreground text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/90"
-                >
-                  <Check className="h-3.5 w-3.5" /> Save changes
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => setEditing(true)}
-                  className="h-8 px-3 rounded-md border text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-muted"
-                >
-                  <Pencil className="h-3.5 w-3.5" /> Edit
-                </button>
-                {testCase.status === "Draft" && (
-                  <button className="h-8 px-3 rounded-md bg-primary text-primary-foreground text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/90">
-                    <BadgeCheck className="h-3.5 w-3.5" /> Approve
-                  </button>
+                  Workspace
+                </Link>
+                <span>/</span>
+                <span>Test Cases</span>
+                <span>/</span>
+                <span className="text-foreground font-semibold">{testcaseId}</span>
+              </div>
+              <h1 className="text-[20px] font-semibold text-foreground truncate">
+                {editing ? (
+                  <input
+                    value={draft.title}
+                    onChange={(e) =>
+                      setDraft((d) => ({ ...d, title: e.target.value }))
+                    }
+                    className="w-full bg-transparent border-b border-primary/30 focus:outline-none focus:border-primary text-[20px] py-1"
+                  />
+                ) : (
+                  draft.title
                 )}
-              </>
-            )}
+              </h1>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {editing ? (
+                <>
+                  <button
+                    onClick={cancel}
+                    className="h-9 px-3.5 rounded-md border bg-card text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-muted transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" /> Cancel
+                  </button>
+                  <button
+                    onClick={save}
+                    className="h-9 px-3.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
+                  >
+                    <Check className="h-3.5 w-3.5" /> Save
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="h-9 px-3.5 rounded-md border text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-muted transition-colors"
+                  >
+                    <Pencil className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  {testCase.status === "Draft" && (
+                    <button className="h-9 px-3.5 rounded-md bg-primary text-primary-foreground text-[12px] font-medium inline-flex items-center gap-1.5 hover:bg-primary/90 transition-colors">
+                      <BadgeCheck className="h-3.5 w-3.5" /> Approve
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
-        }
-      />
+        </div>
+      </header>
 
-      <div className="flex-1 px-6 py-6 max-w-5xl mx-auto w-full">
-        <div className="grid grid-cols-3 gap-4">
-          <div className="col-span-2 space-y-4">
-            {/* Title */}
-            <div className="rounded-lg border bg-card p-4">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                Title
-              </div>
-              {editing ? (
-                <input
-                  value={draft.title}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, title: e.target.value }))
-                  }
-                  className="w-full text-[18px] font-semibold bg-transparent border-b border-primary/30 focus:outline-none focus:border-primary py-1"
-                />
-              ) : (
-                <h2 className="text-[18px] font-semibold">{draft.title}</h2>
-              )}
+      {/* Main Content */}
+      <main className="flex-1 px-6 py-6 pb-32 max-w-6xl mx-auto w-full">
+        <div className="space-y-4">
+          {/* Header Information Section */}
+          <Section title="Header Information">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Test Case ID" read>
+                <span className="font-mono text-[13px]">{draft.id}</span>
+              </Field>
+              <Field
+                label="Status"
+                edit={
+                  editing && (
+                    <select
+                      value={draft.status}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          status: e.target.value as "Draft" | "Approved",
+                        }))
+                      }
+                      className="h-8 border rounded bg-background text-[12px] px-2"
+                    >
+                      {(["Draft", "Approved"] as const).map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                    </select>
+                  )
+                }
+              >
+                <StatusBadge value={draft.status} />
+              </Field>
+              <Field
+                label="Priority"
+                edit={
+                  editing && (
+                    <select
+                      value={draft.priority}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          priority: e.target.value as GeneratedTestCase["priority"],
+                        }))
+                      }
+                      className="h-8 border rounded bg-background text-[12px] px-2"
+                    >
+                      {(["High", "Medium", "Low"] as const).map((t) => (
+                        <option key={t}>{t}</option>
+                      ))}
+                    </select>
+                  )
+                }
+              >
+                <StatusBadge value={draft.priority} />
+              </Field>
+              <Field label="Module / Category">
+                {editing ? (
+                  <input
+                    defaultValue="Authentication"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
+                ) : (
+                  <span className="text-[13px]">Authentication</span>
+                )}
+              </Field>
+              <Field label="Application Name">
+                {editing ? (
+                  <input
+                    defaultValue="Security Suite"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
+                ) : (
+                  <span className="text-[13px]">Security Suite</span>
+                )}
+              </Field>
             </div>
+          </Section>
 
-            {/* Description */}
-            <div className="rounded-lg border bg-card p-4">
-              <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                Description
-              </div>
-              {editing ? (
-                <textarea
-                  value={draft.description}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, description: e.target.value }))
-                  }
-                  rows={3}
-                  className="w-full bg-card border rounded-md p-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25"
-                />
-              ) : (
-                <p className="text-[13px] leading-relaxed">
-                  {draft.description}
-                </p>
-              )}
+          {/* Ownership & Metadata Section */}
+          <Section title="Ownership & Metadata">
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Created By" read>
+                <span className="text-[13px]">Sarah Chen</span>
+              </Field>
+              <Field label="Reviewed By">
+                {editing ? (
+                  <input
+                    defaultValue="James Morrison"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
+                ) : (
+                  <span className="text-[13px]">James Morrison</span>
+                )}
+              </Field>
+              <Field label="Created Date" read>
+                <span className="text-[13px]">{draft.createdAt}</span>
+              </Field>
+              <Field label="Last Updated" read>
+                <span className="text-[13px]">2026-06-24</span>
+              </Field>
             </div>
+          </Section>
 
-            {/* Metadata */}
+          {/* Test Case Information Section */}
+          <Section title="Test Case Information">
             <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-lg border bg-card p-4">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                  Type
-                </div>
+              <Field label="Group">
+                {editing ? (
+                  <select className="h-8 border rounded bg-background text-[12px] px-2 w-full">
+                    {[
+                      "Authentication",
+                      "User Management",
+                      "Dashboard",
+                      "Transactions",
+                      "Reports & Analytics",
+                    ].map((g) => (
+                      <option key={g}>{g}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <span className="text-[13px]">Authentication</span>
+                )}
+              </Field>
+              <Field label="Template">
+                {editing ? (
+                  <select
+                    value={template}
+                    onChange={(e) =>
+                      setTemplate(
+                        e.target.value as "Text Test Case" | "Step Test Case"
+                      )
+                    }
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  >
+                    <option>Text Test Case</option>
+                    <option>Step Test Case</option>
+                  </select>
+                ) : (
+                  <span className="text-[13px]">{template}</span>
+                )}
+              </Field>
+              <Field label="Type">
                 {editing ? (
                   <select
                     value={draft.type}
@@ -232,254 +343,403 @@ function TestCaseDetailPage() {
                         type: e.target.value as GeneratedTestCase["type"],
                       }))
                     }
-                    className="w-full h-8 border rounded-md bg-card text-[13px] px-2"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
                   >
-                    {(["Functional", "Integration", "Negative", "Boundary"] as const).map((t) => (
+                    {([
+                      "Functional",
+                      "Integration",
+                      "Negative",
+                      "Boundary",
+                    ] as const).map((t) => (
                       <option key={t}>{t}</option>
                     ))}
                   </select>
                 ) : (
-                  <span className="text-[13px] font-medium">{draft.type}</span>
+                  <span className="text-[13px]">{draft.type}</span>
                 )}
-              </div>
-              <div className="rounded-lg border bg-card p-4">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                  Priority
-                </div>
+              </Field>
+              <Field label="Estimate">
                 {editing ? (
-                  <select
-                    value={draft.priority}
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        priority: e.target.value as GeneratedTestCase["priority"],
-                      }))
-                    }
-                    className="w-full h-8 border rounded-md bg-card text-[13px] px-2"
-                  >
-                    {(["High", "Medium", "Low"] as const).map((t) => (
-                      <option key={t}>{t}</option>
-                    ))}
-                  </select>
+                  <input
+                    defaultValue="2 hours"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
                 ) : (
-                  <StatusBadge value={draft.priority} />
+                  <span className="text-[13px]">2 hours</span>
                 )}
-              </div>
-              <div className="rounded-lg border bg-card p-4">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                  Status
-                </div>
+              </Field>
+              <Field label="References">
                 {editing ? (
-                  <select
-                    value={draft.status}
-                    onChange={(e) =>
-                      setDraft((d) => ({
-                        ...d,
-                        status: e.target.value as "Draft" | "Approved",
-                      }))
-                    }
-                    className="w-full h-8 border rounded-md bg-card text-[13px] px-2"
-                  >
-                    {(["Draft", "Approved"] as const).map((t) => (
-                      <option key={t}>{t}</option>
+                  <input
+                    defaultValue="SEC-2024-08"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
+                ) : (
+                  <span className="text-[13px]">SEC-2024-08</span>
+                )}
+              </Field>
+              <Field label="Automation Type">
+                {editing ? (
+                  <select className="h-8 border rounded bg-background text-[12px] px-2 w-full">
+                    {[
+                      "Manual",
+                      "Automated",
+                      "Semi-Automated",
+                      "Not Automatable",
+                      "Planned for Automation",
+                    ].map((a) => (
+                      <option key={a}>{a}</option>
                     ))}
                   </select>
                 ) : (
-                  <StatusBadge value={draft.status} />
+                  <span className="text-[13px]">Automated</span>
                 )}
-              </div>
+              </Field>
             </div>
+          </Section>
 
-            {/* Test Steps */}
-            <div className="rounded-lg border bg-card">
-              <div className="px-4 h-10 flex items-center border-b">
-                <h3 className="font-semibold flex items-center gap-1.5">
-                  <ListChecks className="h-4 w-4 text-primary" /> Test Steps
-                </h3>
-                <span className="ml-2 text-[11px] text-muted-foreground font-mono">
-                  {draft.steps.length}
-                </span>
-                {editing && (
-                  <button
-                    onClick={addStep}
-                    className="ml-auto h-7 px-2.5 rounded-md text-[12px] font-medium inline-flex items-center gap-1.5 text-primary hover:bg-accent"
-                  >
-                    <Plus className="h-3.5 w-3.5" /> Add step
-                  </button>
-                )}
-              </div>
-              <div className="divide-y">
-                {draft.steps.map((s, i) => (
-                  <div
-                    key={i}
-                    className="px-4 py-3 grid grid-cols-[28px_1fr_1fr_24px] gap-3 text-[13px] items-start"
-                  >
-                    <div className="font-mono text-[11px] text-muted-foreground pt-1">
-                      #{i + 1}
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Action
-                      </div>
-                      {editing ? (
-                        <textarea
-                          value={s.step}
-                          onChange={(e) =>
-                            updateStep(i, "step", e.target.value)
-                          }
-                          rows={2}
-                          className="w-full bg-card border rounded-md p-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25"
-                        />
-                      ) : (
-                        <div>{s.step}</div>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
-                        Expected Result
-                      </div>
-                      {editing ? (
-                        <textarea
-                          value={s.expected}
-                          onChange={(e) =>
-                            updateStep(i, "expected", e.target.value)
-                          }
-                          rows={2}
-                          className="w-full bg-card border rounded-md p-1.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/25"
-                        />
-                      ) : (
-                        <div>{s.expected}</div>
-                      )}
-                    </div>
-                    {editing && (
-                      <button
-                        onClick={() => removeStep(i)}
-                        className="text-muted-foreground hover:text-destructive mt-1"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Document */}
-            {doc && (
-              <div className="rounded-lg border bg-card p-4">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold mb-2">
-                  Source Document
-                </div>
-                <p className="text-[12px] font-medium text-foreground flex items-center gap-1">
-                  <FileType2 className="h-3.5 w-3.5 text-muted-foreground" />
-                  {doc.name}
-                </p>
-              </div>
+          {/* Preconditions Section */}
+          <Section title="Preconditions">
+            {editing ? (
+              <textarea
+                value={draft.description}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, description: e.target.value }))
+                }
+                rows={4}
+                placeholder="Enter preconditions (supports rich text in production)..."
+                className="w-full border rounded bg-background text-[13px] p-2 focus:outline-none focus:ring-2 focus:ring-primary/25"
+              />
+            ) : (
+              <p className="text-[13px] leading-relaxed text-foreground/90">
+                {draft.description}
+              </p>
             )}
+          </Section>
 
-            {/* Linked Requirements */}
-            <div className="rounded-lg border bg-card p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground font-semibold">
-                  Linked Requirements
-                </div>
-                {editing && (
-                  <button
-                    onClick={() => setShowReqPicker((v) => !v)}
-                    className="text-[11px] text-primary hover:underline inline-flex items-center gap-1"
-                  >
-                    <Plus className="h-3 w-3" /> Add
-                  </button>
-                )}
-              </div>
-              <div className="space-y-1">
-                {draft.sourceReqIds.map((rid) => {
-                  const r = requirements.find((x) => x.id === rid);
-                  return (
-                    <div
-                      key={rid}
-                      className="flex items-center gap-2 text-[12px] bg-secondary/50 border rounded-md px-2 py-1"
-                    >
-                      <span className="font-mono text-[11px] text-muted-foreground">
-                        {rid}
-                      </span>
-                      <span className="flex-1 truncate text-foreground/90">
-                        {r?.name ?? "—"}
-                      </span>
+          {/* Dynamic Template Section */}
+          {template === "Step Test Case" && (
+            <Section title="Test Steps">
+              <div className="overflow-x-auto border rounded">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-12">
+                        #
+                      </th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex-1">
+                        Step
+                      </th>
+                      <th className="px-3 py-2 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex-1">
+                        Expected Result
+                      </th>
                       {editing && (
-                        <button
-                          onClick={() => removeReq(rid)}
-                          className="text-muted-foreground hover:text-destructive"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
+                        <th className="px-3 py-2 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider w-12">
+                          Actions
+                        </th>
                       )}
-                    </div>
-                  );
-                })}
-                {draft.sourceReqIds.length === 0 && (
-                  <p className="text-[12px] text-muted-foreground">
-                    No requirements linked.
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {draft.steps.map((step, i) => (
+                      <tr key={i} className="hover:bg-muted/20">
+                        <td className="px-3 py-3 font-mono text-[11px] text-muted-foreground">
+                          {i + 1}
+                        </td>
+                        <td className="px-3 py-3">
+                          {editing ? (
+                            <textarea
+                              value={step.step}
+                              onChange={(e) =>
+                                updateStep(i, "step", e.target.value)
+                              }
+                              rows={2}
+                              className="w-full border rounded bg-background text-[12px] p-1.5 focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            />
+                          ) : (
+                            <p className="text-[13px] text-foreground/90">
+                              {step.step}
+                            </p>
+                          )}
+                        </td>
+                        <td className="px-3 py-3">
+                          {editing ? (
+                            <textarea
+                              value={step.expected}
+                              onChange={(e) =>
+                                updateStep(i, "expected", e.target.value)
+                              }
+                              rows={2}
+                              className="w-full border rounded bg-background text-[12px] p-1.5 focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            />
+                          ) : (
+                            <p className="text-[13px] text-foreground/90">
+                              {step.expected}
+                            </p>
+                          )}
+                        </td>
+                        {editing && (
+                          <td className="px-3 py-3">
+                            <button
+                              onClick={() => removeStep(i)}
+                              className="text-muted-foreground hover:text-destructive transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {editing && (
+                <button
+                  onClick={addStep}
+                  className="mt-3 h-8 px-3 text-[12px] font-medium rounded border text-primary hover:bg-accent inline-flex items-center gap-1.5 transition-colors"
+                >
+                  <Plus className="h-3.5 w-3.5" /> Add Step
+                </button>
+              )}
+            </Section>
+          )}
+
+          {template === "Text Test Case" && (
+            <>
+              <Section title="Steps to Execute">
+                {editing ? (
+                  <textarea
+                    defaultValue="1. Navigate to the login screen\n2. Enter credentials\n3. Verify authentication"
+                    rows={5}
+                    className="w-full border rounded bg-background text-[13px] p-2 focus:outline-none focus:ring-2 focus:ring-primary/25"
+                  />
+                ) : (
+                  <p className="text-[13px] leading-relaxed text-foreground/90">
+                    1. Navigate to the login screen
+                    <br />
+                    2. Enter credentials
+                    <br />
+                    3. Verify authentication
                   </p>
                 )}
+              </Section>
+
+              <Section title="Expected Results">
+                {editing ? (
+                  <textarea
+                    defaultValue="User is successfully authenticated and routed to the dashboard"
+                    rows={4}
+                    className="w-full border rounded bg-background text-[13px] p-2 focus:outline-none focus:ring-2 focus:ring-primary/25"
+                  />
+                ) : (
+                  <p className="text-[13px] leading-relaxed text-foreground/90">
+                    User is successfully authenticated and routed to the dashboard
+                  </p>
+                )}
+              </Section>
+            </>
+          )}
+
+          {/* Traceability Section */}
+          <Section title="Traceability">
+            <div className="space-y-3">
+              <div>
+                <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground mb-2">
+                  Linked Requirements
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {linkedReqs.map((req) => (
+                    <Link
+                      key={req.id}
+                      to="/requirements/$reqId"
+                      params={{ reqId: req.id }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border bg-card hover:bg-muted transition-colors"
+                    >
+                      <span className="font-mono text-[11px] font-semibold text-primary">
+                        {req.id}
+                      </span>
+                      <span className="text-[12px] text-foreground truncate max-w-xs">
+                        {req.name}
+                      </span>
+                    </Link>
+                  ))}
+                  {linkedReqs.length === 0 && (
+                    <p className="text-[12px] text-muted-foreground">
+                      No requirements linked.
+                    </p>
+                  )}
+                </div>
               </div>
-              {editing && showReqPicker && (
-                <div className="mt-2 border rounded-md bg-card">
-                  <div className="p-1.5 border-b">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                      <input
-                        autoFocus
-                        value={reqSearch}
-                        onChange={(e) => setReqSearch(e.target.value)}
-                        placeholder="Search requirements…"
-                        className="w-full h-7 pl-7 pr-2 text-[12px] focus:outline-none"
-                      />
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
+                    Add Requirement
+                  </div>
+                  {editing && (
+                    <button
+                      onClick={() => setShowReqPicker((v) => !v)}
+                      className="text-[11px] text-primary hover:underline"
+                    >
+                      <Plus className="h-3 w-3 inline mr-1" /> Add
+                    </button>
+                  )}
+                </div>
+                {editing && showReqPicker && (
+                  <div className="border rounded-md bg-card">
+                    <div className="p-2 border-b">
+                      <div className="relative">
+                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
+                        <input
+                          autoFocus
+                          value={reqSearch}
+                          onChange={(e) => setReqSearch(e.target.value)}
+                          placeholder="Search requirements…"
+                          className="w-full h-7 pl-7 pr-2 text-[12px] focus:outline-none bg-background rounded"
+                        />
+                      </div>
+                    </div>
+                    <div className="max-h-40 overflow-y-auto">
+                      {reqPickerResults.length === 0 ? (
+                        <p className="px-3 py-2 text-[11px] text-muted-foreground">
+                          No matches
+                        </p>
+                      ) : (
+                        reqPickerResults.map((r) => (
+                          <button
+                            key={r.id}
+                            onClick={() => {
+                              addReq(r.id);
+                              setReqSearch("");
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-muted text-left text-[12px] border-b last:border-b-0"
+                          >
+                            <span className="font-mono text-[10px] text-muted-foreground w-14 shrink-0">
+                              {r.id}
+                            </span>
+                            <span className="flex-1 truncate">{r.name}</span>
+                            <Plus className="h-3 w-3 text-primary" />
+                          </button>
+                        ))
+                      )}
                     </div>
                   </div>
-                  <div className="max-h-40 overflow-y-auto">
-                    {reqPickerResults.length === 0 ? (
-                      <p className="px-3 py-2 text-[11px] text-muted-foreground">
-                        No matches
-                      </p>
-                    ) : (
-                      reqPickerResults.map((r) => (
-                        <button
-                          key={r.id}
-                          onClick={() => {
-                            addReq(r.id);
-                            setReqSearch("");
-                          }}
-                          className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-muted text-left text-[12px]"
-                        >
-                          <span className="font-mono text-[10px] text-muted-foreground w-14">
-                            {r.id}
-                          </span>
-                          <span className="flex-1 truncate">{r.name}</span>
-                          <Plus className="h-3 w-3 text-primary" />
-                        </button>
-                      ))
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Metadata */}
-            <div className="rounded-lg border bg-card p-4 space-y-2 text-[12px]">
-              <div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold mb-0.5">
-                  Created
-                </div>
-                <p className="text-foreground">{draft.createdAt}</p>
+                )}
               </div>
             </div>
-          </div>
+          </Section>
+
+          {/* Regulatory Compliance Section */}
+          <Section title="Regulatory Compliance">
+            <div className="grid grid-cols-3 gap-3">
+              <Field label="Standard">
+                {editing ? (
+                  <input
+                    defaultValue="ISO 13485"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
+                ) : (
+                  <span className="text-[13px]">ISO 13485</span>
+                )}
+              </Field>
+              <Field label="Clause">
+                {editing ? (
+                  <input
+                    defaultValue="7.3.2"
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full"
+                  />
+                ) : (
+                  <span className="text-[13px]">7.3.2</span>
+                )}
+              </Field>
+              <Field label="Compliance Details">
+                {editing ? (
+                  <textarea
+                    defaultValue="Security controls for user authentication"
+                    rows={1}
+                    className="h-8 border rounded bg-background text-[12px] px-2 w-full resize-none"
+                  />
+                ) : (
+                  <span className="text-[13px]">
+                    Security controls for user authentication
+                  </span>
+                )}
+              </Field>
+            </div>
+          </Section>
         </div>
+      </main>
+
+      {/* Sticky Footer */}
+      <footer
+        ref={footerRef}
+        className="fixed bottom-0 left-0 right-0 border-t bg-card backdrop-blur-sm"
+      >
+        <div className="px-6 py-3 max-w-6xl mx-auto w-full flex items-center justify-end gap-2">
+          {editing ? (
+            <>
+              <button
+                onClick={cancel}
+                className="h-9 px-4 rounded-md border text-[12px] font-medium hover:bg-muted transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={save}
+                className="h-9 px-4 rounded-md bg-primary text-primary-foreground text-[12px] font-medium hover:bg-primary/90 transition-colors inline-flex items-center gap-1.5"
+              >
+                <Check className="h-3.5 w-3.5" /> Save Test Case
+              </button>
+            </>
+          ) : (
+            <div className="text-[11px] text-muted-foreground">
+              All changes saved
+            </div>
+          )}
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+interface SectionProps {
+  title: string;
+  children: React.ReactNode;
+}
+
+function Section({ title, children }: SectionProps) {
+  return (
+    <div className="border rounded-lg bg-card">
+      <div className="px-4 h-10 flex items-center border-b bg-muted/50">
+        <h2 className="text-[13px] font-semibold text-foreground">{title}</h2>
       </div>
+      <div className="p-4">{children}</div>
+    </div>
+  );
+}
+
+interface FieldProps {
+  label: string;
+  children: React.ReactNode;
+  edit?: React.ReactNode;
+  read?: boolean;
+}
+
+function Field({ label, children, edit, read }: FieldProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
+  return (
+    <div>
+      <label className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground block mb-1">
+        {label}
+        {read && <span className="text-muted-foreground/60"> (read-only)</span>}
+      </label>
+      {edit && !read ? (
+        <div onClick={() => setIsEditing(!isEditing)}>
+          {isEditing ? edit : children}
+        </div>
+      ) : (
+        <div className="text-[13px]">{children}</div>
+      )}
     </div>
   );
 }

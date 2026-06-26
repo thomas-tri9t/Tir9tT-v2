@@ -1,4 +1,4 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ChevronRight, ChevronDown, FileText, FlaskConical, Folder, FolderOpen,
@@ -81,6 +81,7 @@ const seedTests: GeneratedTestCase[] = [
 
 function WorkspacePage() {
   const { project } = Route.useLoaderData();
+  const navigate = useNavigate();
   const [selection, setSelection] = useState<Selection>({ kind: "category", category: reqCategories[0] });
   const [panelOpen, setPanelOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -388,8 +389,8 @@ function WorkspacePage() {
           isOpen={panelOpen}
           onClose={closePanel}
           onOpenFullView={() => {
-            // Will implement full page navigation in Phase 3
-            closePanel();
+            // Navigate to full requirement page
+            navigate({ to: "/requirements/$reqId", params: { reqId: selection.reqId } });
           }}
           title={`Requirement ${selection.reqId}`}
           className="p-4"
@@ -407,8 +408,11 @@ function WorkspacePage() {
           isOpen={panelOpen}
           onClose={closePanel}
           onOpenFullView={() => {
-            // Will implement full page navigation in Phase 3
-            closePanel();
+            // Navigate to full test case detail page
+            navigate({
+              to: "/workspace/$projectId/testcases/$testcaseId",
+              params: { projectId, testcaseId: selection.tcId },
+            });
           }}
           title={`Test Case ${selection.tcId}`}
           className="p-4"
