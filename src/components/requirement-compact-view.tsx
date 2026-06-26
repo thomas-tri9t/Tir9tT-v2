@@ -6,6 +6,7 @@ import { reqDocuments, requirements } from "@/lib/mock-data";
 export interface RequirementCompactViewProps {
   req: Requirement;
   onOpenTest: (id: string) => void;
+  onOpenFullView?: () => void;
   allTestCases: Array<{
     id: string;
     title: string;
@@ -17,6 +18,7 @@ export interface RequirementCompactViewProps {
 export function RequirementCompactView({
   req,
   onOpenTest,
+  onOpenFullView,
   allTestCases,
 }: RequirementCompactViewProps) {
   const doc = reqDocuments.find((d) => d.id === req.documentId);
@@ -165,11 +167,16 @@ export function RequirementCompactView({
       )}
 
       {/* Open Full View Button */}
-      <div className="pt-2 border-t border-border/50">
-        <button className="w-full h-8 px-3 rounded-md border bg-card text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted inline-flex items-center justify-center gap-1.5 transition-colors">
-          <ArrowUpRight className="h-3.5 w-3.5" /> Open Full View
-        </button>
-      </div>
+      {onOpenFullView && (
+        <div className="pt-2 border-t border-border/50">
+          <button
+            onClick={onOpenFullView}
+            className="w-full h-8 px-3 rounded-md border bg-card text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-muted inline-flex items-center justify-center gap-1.5 transition-colors"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5" /> Open Full View
+          </button>
+        </div>
+      )}
     </div>
   );
 }

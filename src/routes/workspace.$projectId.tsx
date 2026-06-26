@@ -398,6 +398,9 @@ function WorkspacePage() {
           <RequirementCompactView
             req={requirements.find(r => r.id === selection.reqId)!}
             onOpenTest={(id) => openPanel({ kind: "testcase", tcId: id })}
+            onOpenFullView={() => {
+              navigate({ to: "/requirements/$reqId", params: { reqId: selection.reqId } });
+            }}
             allTestCases={testCases}
           />
         </WorkspaceDetailPanel>
@@ -420,6 +423,12 @@ function WorkspacePage() {
           <TestCaseCompactView
             tc={testCases.find(t => t.id === selection.tcId)!}
             onSelectReq={(id) => openPanel({ kind: "requirement", reqId: id })}
+            onOpenFullView={() => {
+              navigate({
+                to: "/workspace/$projectId/testcases/$testcaseId",
+                params: { projectId, testcaseId: selection.tcId },
+              });
+            }}
           />
         </WorkspaceDetailPanel>
       )}
