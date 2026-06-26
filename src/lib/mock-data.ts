@@ -18,6 +18,19 @@ export const projects: Project[] = [
   { id: "PRJ-006", name: "Biometric Access Suite", description: "Fingerprint auth and access control.", progress: 100, status: "Completed", health: "Healthy", owner: "Alexander Kingston", updatedAt: "2026-05-30" },
 ];
 
+export type GeneratedTestCase = {
+  id: string;
+  title: string;
+  description: string;
+  sourceReqIds: string[];
+  sourceDocId?: string;
+  priority: "High" | "Medium" | "Low";
+  type: "Functional" | "Integration" | "Negative" | "Boundary";
+  steps: { step: string; expected: string }[];
+  createdAt: string;
+  status: "Draft" | "Approved";
+};
+
 export type Activity = {
   id: string;
   user: string;

@@ -35,6 +35,7 @@ import { Route as ProjectsProjectIdRouteImport } from './routes/projects.$projec
 import { Route as IntegrationsPolarionRouteImport } from './routes/integrations.polarion'
 import { Route as IntegrationsJiraRouteImport } from './routes/integrations.jira'
 import { Route as IntegrationsAzureRouteImport } from './routes/integrations.azure'
+import { Route as WorkspaceProjectIdTestcasesTestcaseIdRouteImport } from './routes/workspace.$projectId.testcases.$testcaseId'
 
 const WorkspaceRoute = WorkspaceRouteImport.update({
   id: '/workspace',
@@ -166,6 +167,12 @@ const IntegrationsAzureRoute = IntegrationsAzureRouteImport.update({
   path: '/azure',
   getParentRoute: () => IntegrationsRoute,
 } as any)
+const WorkspaceProjectIdTestcasesTestcaseIdRoute =
+  WorkspaceProjectIdTestcasesTestcaseIdRouteImport.update({
+    id: '/testcases/$testcaseId',
+    path: '/testcases/$testcaseId',
+    getParentRoute: () => WorkspaceProjectIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -188,12 +195,13 @@ export interface FileRoutesByFullPath {
   '/settings/permissions': typeof SettingsPermissionsRoute
   '/settings/roles': typeof SettingsRolesRoute
   '/settings/users': typeof SettingsUsersRoute
-  '/workspace/$projectId': typeof WorkspaceProjectIdRoute
+  '/workspace/$projectId': typeof WorkspaceProjectIdRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/integrations/': typeof IntegrationsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/workspace/': typeof WorkspaceIndexRoute
+  '/workspace/$projectId/testcases/$testcaseId': typeof WorkspaceProjectIdTestcasesTestcaseIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,12 +219,13 @@ export interface FileRoutesByTo {
   '/settings/permissions': typeof SettingsPermissionsRoute
   '/settings/roles': typeof SettingsRolesRoute
   '/settings/users': typeof SettingsUsersRoute
-  '/workspace/$projectId': typeof WorkspaceProjectIdRoute
+  '/workspace/$projectId': typeof WorkspaceProjectIdRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/integrations': typeof IntegrationsIndexRoute
   '/projects': typeof ProjectsIndexRoute
   '/settings': typeof SettingsIndexRoute
   '/workspace': typeof WorkspaceIndexRoute
+  '/workspace/$projectId/testcases/$testcaseId': typeof WorkspaceProjectIdTestcasesTestcaseIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -240,12 +249,13 @@ export interface FileRoutesById {
   '/settings/permissions': typeof SettingsPermissionsRoute
   '/settings/roles': typeof SettingsRolesRoute
   '/settings/users': typeof SettingsUsersRoute
-  '/workspace/$projectId': typeof WorkspaceProjectIdRoute
+  '/workspace/$projectId': typeof WorkspaceProjectIdRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/integrations/': typeof IntegrationsIndexRoute
   '/projects/': typeof ProjectsIndexRoute
   '/settings/': typeof SettingsIndexRoute
   '/workspace/': typeof WorkspaceIndexRoute
+  '/workspace/$projectId/testcases/$testcaseId': typeof WorkspaceProjectIdTestcasesTestcaseIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -276,6 +286,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/settings/'
     | '/workspace/'
+    | '/workspace/$projectId/testcases/$testcaseId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -299,6 +310,7 @@ export interface FileRouteTypes {
     | '/projects'
     | '/settings'
     | '/workspace'
+    | '/workspace/$projectId/testcases/$testcaseId'
   id:
     | '__root__'
     | '/'
@@ -327,6 +339,7 @@ export interface FileRouteTypes {
     | '/projects/'
     | '/settings/'
     | '/workspace/'
+    | '/workspace/$projectId/testcases/$testcaseId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -527,6 +540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegrationsAzureRouteImport
       parentRoute: typeof IntegrationsRoute
     }
+    '/workspace/$projectId/testcases/$testcaseId': {
+      id: '/workspace/$projectId/testcases/$testcaseId'
+      path: '/testcases/$testcaseId'
+      fullPath: '/workspace/$projectId/testcases/$testcaseId'
+      preLoaderRoute: typeof WorkspaceProjectIdTestcasesTestcaseIdRouteImport
+      parentRoute: typeof WorkspaceProjectIdRoute
+    }
   }
 }
 
@@ -594,13 +614,25 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
 )
 
+interface WorkspaceProjectIdRouteChildren {
+  WorkspaceProjectIdTestcasesTestcaseIdRoute: typeof WorkspaceProjectIdTestcasesTestcaseIdRoute
+}
+
+const WorkspaceProjectIdRouteChildren: WorkspaceProjectIdRouteChildren = {
+  WorkspaceProjectIdTestcasesTestcaseIdRoute:
+    WorkspaceProjectIdTestcasesTestcaseIdRoute,
+}
+
+const WorkspaceProjectIdRouteWithChildren =
+  WorkspaceProjectIdRoute._addFileChildren(WorkspaceProjectIdRouteChildren)
+
 interface WorkspaceRouteChildren {
-  WorkspaceProjectIdRoute: typeof WorkspaceProjectIdRoute
+  WorkspaceProjectIdRoute: typeof WorkspaceProjectIdRouteWithChildren
   WorkspaceIndexRoute: typeof WorkspaceIndexRoute
 }
 
 const WorkspaceRouteChildren: WorkspaceRouteChildren = {
-  WorkspaceProjectIdRoute: WorkspaceProjectIdRoute,
+  WorkspaceProjectIdRoute: WorkspaceProjectIdRouteWithChildren,
   WorkspaceIndexRoute: WorkspaceIndexRoute,
 }
 
@@ -624,3 +656,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
