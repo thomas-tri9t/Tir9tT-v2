@@ -68,6 +68,7 @@ const seedTests: GeneratedTestCase[] = [
 
 function WorkspacePage() {
   const { project } = Route.useLoaderData();
+  const { projectId } = Route.useParams();
   const navigate = useNavigate();
   const [selection, setSelection] = useState<Selection>({ kind: "category", category: reqCategories[0] });
   const [panelOpen, setPanelOpen] = useState(false);
