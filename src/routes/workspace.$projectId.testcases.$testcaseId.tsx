@@ -1,12 +1,11 @@
 import { createFileRoute, Link, notFound, useParams } from "@tanstack/react-router";
 import { useState, useEffect, useRef } from "react";
 import {
-  ArrowLeft, Check, X, Pencil, BadgeCheck, Trash2, ListChecks,
-  Plus, Search, FileType2, ChevronDown, Link2, FileText,
+  Check, X, Pencil, BadgeCheck, Trash2,
+  Plus, Search,
 } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
-import { requirements, reqDocuments, type Requirement } from "@/lib/mock-data";
-import { cn } from "@/lib/utils";
+import { requirements, reqDocuments, type GeneratedTestCase } from "@/lib/mock-data";
 
 export const Route = createFileRoute("/workspace/$projectId/testcases/$testcaseId")({
   head: () => ({ meta: [{ title: "Test Case — RequireQA" }] }),
@@ -15,19 +14,6 @@ export const Route = createFileRoute("/workspace/$projectId/testcases/$testcaseI
   },
   component: TestCaseDetailPage,
 });
-
-export type GeneratedTestCase = {
-  id: string;
-  title: string;
-  description: string;
-  sourceReqIds: string[];
-  sourceDocId?: string;
-  priority: "High" | "Medium" | "Low";
-  type: "Functional" | "Integration" | "Negative" | "Boundary";
-  steps: { step: string; expected: string }[];
-  createdAt: string;
-  status: "Draft" | "Approved";
-};
 
 // Mock test case - in production, fetch from route data
 const mockTestCases: GeneratedTestCase[] = [

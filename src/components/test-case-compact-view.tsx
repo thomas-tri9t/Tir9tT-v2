@@ -1,7 +1,6 @@
 import { Link2, ArrowUpRight } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
-import { type GeneratedTestCase } from "@/routes/workspace.$projectId";
-import { reqDocuments, requirements } from "@/lib/mock-data";
+import { reqDocuments, requirements, type GeneratedTestCase } from "@/lib/mock-data";
 
 export interface TestCaseCompactViewProps {
   tc: GeneratedTestCase;

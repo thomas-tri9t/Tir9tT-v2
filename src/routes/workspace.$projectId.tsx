@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { WorkspaceDetailPanel } from "@/components/workspace-detail-panel";
 import { RequirementCompactView } from "@/components/requirement-compact-view";
 import { TestCaseCompactView } from "@/components/test-case-compact-view";
-import { projects, requirements, reqDocuments, reqCategories, type Requirement, type ReqDocument } from "@/lib/mock-data";
+import { projects, requirements, reqDocuments, reqCategories, type Requirement, type ReqDocument, type GeneratedTestCase } from "@/lib/mock-data";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/workspace/$projectId")({
@@ -27,19 +27,6 @@ export const Route = createFileRoute("/workspace/$projectId")({
 /* ─────────────────────────── Types ─────────────────────────── */
 
 type TCStatus = "Draft" | "Approved";
-
-export type GeneratedTestCase = {
-  id: string;
-  title: string;
-  description: string;
-  sourceReqIds: string[];
-  sourceDocId?: string;
-  priority: "High" | "Medium" | "Low";
-  type: "Functional" | "Integration" | "Negative" | "Boundary";
-  steps: { step: string; expected: string }[];
-  createdAt: string;
-  status: TCStatus;
-};
 
 type Selection =
   | { kind: "category"; category: string }
